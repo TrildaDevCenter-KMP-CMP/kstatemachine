@@ -53,8 +53,8 @@ class StateMachineTest : FreeSpec({
             "on off dsl sample" {
                 val callbacks = mockkCallbacks()
 
-                lateinit var on: State
-                lateinit var off: State
+                val on: State
+                val off: State
 
                 val machine = createTestStateMachine(coroutineStarterType) {
                     on = initialState("on") {

@@ -22,6 +22,9 @@ import ru.nsk.kstatemachine.transition.EventAndArgument
 import ru.nsk.kstatemachine.transition.TransitionParams
 import ru.nsk.kstatemachine.visitors.CoVisitor
 import ru.nsk.kstatemachine.visitors.Visitor
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 @DslMarker
 annotation class StateMachineDslMarker
@@ -242,6 +245,7 @@ interface BuildingStateMachine : StateMachine {
  * Factory method for creating [StateMachine].
  * Suspendable code will be called via Kotlin Standard library (without Kotlin Coroutines library support).
  */
+@OptIn(ExperimentalContracts::class)
 fun createStdLibStateMachine(
     name: String? = null,
     childMode: ChildMode = ChildMode.EXCLUSIVE,
@@ -249,6 +253,9 @@ fun createStdLibStateMachine(
     creationArguments: CreationArguments = buildCreationArguments {},
     init: suspend BuildingStateMachine.() -> Unit
 ): StateMachine {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+    }
     return with(StdLibCoroutineAbstraction()) {
         runBlocking {
             createStateMachine(name, childMode, start, creationArguments, init)

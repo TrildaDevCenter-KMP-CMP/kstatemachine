@@ -19,6 +19,9 @@ import ru.nsk.kstatemachine.state.*
 import ru.nsk.kstatemachine.statemachine.*
 import ru.nsk.kstatemachine.transition.TransitionBuilder
 import ru.nsk.kstatemachine.transition.onTriggered
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.coroutines.EmptyCoroutineContext
 
 typealias Callback<T> = (T) -> Unit
@@ -81,9 +84,11 @@ enum class CoroutineStarterType {
 
 @OptIn(ExperimentalCoroutinesApi::class)
 private val singleThreadContext = newSingleThreadContext("test single thread context") // context leaks
+
 /**
  * Wraps [createStdLibStateMachine] so it can be easily switched to [createStdLibStateMachine]
  */
+@OptIn(ExperimentalContracts::class)
 suspend fun createTestStateMachine(
     coroutineStarterType: CoroutineStarterType,
     name: String? = null,
@@ -91,44 +96,49 @@ suspend fun createTestStateMachine(
     start: Boolean = true,
     creationArguments: CreationArguments = buildCreationArguments {},
     init: suspend BuildingStateMachine.() -> Unit
-) = when (coroutineStarterType) {
-    CoroutineStarterType.STD_LIB -> createStdLibStateMachine(
-        name,
-        childMode,
-        start,
-        creationArguments,
-        init = init
-    )
-    CoroutineStarterType.COROUTINES_LIB_EMPTY_CONTEXT -> createStateMachine(
-        CoroutineScope(EmptyCoroutineContext), // does not perform internal context switching
-        name,
-        childMode,
-        start,
-        creationArguments,
-        init = init
-    )
-    CoroutineStarterType.COROUTINES_LIB_UNCONFINED_DISPATCHER -> createStateMachine(
-        CoroutineScope(Dispatchers.Unconfined),
-        name,
-        childMode,
-        start,
-        creationArguments,
-        init = init
-    )
-    CoroutineStarterType.COROUTINES_LIB_SINGLE_THREAD_DISPATCHER -> createStateMachine(
-        CoroutineScope(singleThreadContext),
-        name,
-        childMode,
-        start,
-        creationArguments,
-        init = init
-    )
-    CoroutineStarterType.COROUTINES_LIB_DEFAULT_LIMITED_DISPATCHER -> createStateMachine(
-        CoroutineScope(Dispatchers.Default.limitedParallelism(1)), // does not guarantee same thread for each task
-        name,
-        childMode,
-        start,
-        creationArguments,
-        init = init
-    )
+): StateMachine {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+    }
+    return when (coroutineStarterType) {
+        CoroutineStarterType.STD_LIB -> createStdLibStateMachine(
+            name,
+            childMode,
+            start,
+            creationArguments,
+            init = init
+        )
+        CoroutineStarterType.COROUTINES_LIB_EMPTY_CONTEXT -> createStateMachine(
+            CoroutineScope(EmptyCoroutineContext), // does not perform internal context switching
+            name,
+            childMode,
+            start,
+            creationArguments,
+            init = init
+        )
+        CoroutineStarterType.COROUTINES_LIB_UNCONFINED_DISPATCHER -> createStateMachine(
+            CoroutineScope(Dispatchers.Unconfined),
+            name,
+            childMode,
+            start,
+            creationArguments,
+            init = init
+        )
+        CoroutineStarterType.COROUTINES_LIB_SINGLE_THREAD_DISPATCHER -> createStateMachine(
+            CoroutineScope(singleThreadContext),
+            name,
+            childMode,
+            start,
+            creationArguments,
+            init = init
+        )
+        CoroutineStarterType.COROUTINES_LIB_DEFAULT_LIMITED_DISPATCHER -> createStateMachine(
+            CoroutineScope(Dispatchers.Default.limitedParallelism(1)), // does not guarantee same thread for each task
+            name,
+            childMode,
+            start,
+            creationArguments,
+            init = init
+        )
+    }
 }
