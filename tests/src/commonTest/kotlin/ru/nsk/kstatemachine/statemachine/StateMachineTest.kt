@@ -11,10 +11,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowUnitWithMessage
 import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.data.forAll
-import io.kotest.data.headers
-import io.kotest.data.row
-import io.kotest.data.table
+import io.kotest.datatest.withData
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldEndWith
@@ -387,11 +384,11 @@ class StateMachineTest : FreeSpec({
                 }
             }
 
-            table(
-                headers("stop"),
-                row(false),
-                row(true),
-            ).forAll { stop ->
+            withData(
+                nameFn = { "stop $it" },
+                false,
+                true
+            ) { stop ->
                 "destroy stopped machine" {
                     val callbacks = mockkCallbacks()
                     val machine = createTestStateMachine(coroutineStarterType) {

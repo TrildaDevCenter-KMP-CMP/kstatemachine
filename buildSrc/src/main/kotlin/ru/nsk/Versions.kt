@@ -20,6 +20,6 @@ object Versions {
     const val serialization = "1.9.0"
 
     // test dependencies   
-    const val mockk = "1.14.5"
-    const val kotest = "5.9.1"
+    const val mockk = "1.14.7"
+    const val kotest = "6.0.7"
 }

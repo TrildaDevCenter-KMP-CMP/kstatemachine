@@ -22,7 +22,6 @@ kotlin {
                 implementation(project(":kstatemachine-serialization"))
 
                 implementation("io.kotest:kotest-assertions-core:${Versions.kotest}")
-                implementation("io.kotest:kotest-framework-datatest:${Versions.kotest}")
             }
         }
         jvmTest {

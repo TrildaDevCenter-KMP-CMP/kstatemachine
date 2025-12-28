@@ -8,10 +8,7 @@
 package ru.nsk.kstatemachine.visitors.export
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.data.forAll
-import io.kotest.data.headers
-import io.kotest.data.row
-import io.kotest.data.table
+import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldNotBeInstanceOf
 import ru.nsk.kstatemachine.*
@@ -320,11 +317,11 @@ private suspend fun makeChoiceMachine(coroutineStarterType: CoroutineStarterType
 class ExportPlantUmlVisitorTest : FreeSpec({
     CoroutineStarterType.entries.forEach { coroutineStarterType ->
         "$coroutineStarterType" - {
-            table(
-                headers("showEventLabels", "result"),
-                row(false, PLANTUML_NESTED_STATES_RESULT),
-                row(true, PLANTUML_NESTED_STATES_SHOW_EVENT_LABELS_RESULT),
-            ).forAll { showEventLabels, result ->
+            withData(
+                nameFn = { "showEventLabels ${it.first} result ${it.second}" },
+                false to PLANTUML_NESTED_STATES_RESULT,
+                true to PLANTUML_NESTED_STATES_SHOW_EVENT_LABELS_RESULT,
+            ) { (showEventLabels, result) ->
                 "plantUml export nested states" {
                     val machine = makeNestedMachine(coroutineStarterType)
                     machine.exportToPlantUml(showEventLabels) shouldBe result
